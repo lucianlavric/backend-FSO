@@ -8,10 +8,8 @@ const mongoose = require('mongoose')
 
 // DO NOT SAVE YOUR PASSWORD TO GITHUB!!
 const password = process.argv[2]
-const url = `mongodb+srv://lucianlavric2005:${password}@cluster0.uswyigg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
 
 mongoose.set('strictQuery', false)
-mongoose.connect(url)
 
 const noteSchema = new mongoose.Schema({
 	content: String,
