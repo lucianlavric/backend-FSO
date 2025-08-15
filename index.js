@@ -1,46 +1,22 @@
 require('dotenv').config()
 const express = require('express')
 const app = express()
-app.use(express.static('dist'))
 const Note = require('./models/note')
 
-const mongoose = require('mongoose')
 
-// DO NOT SAVE YOUR PASSWORD TO GITHUB!!
-const password = process.argv[2]
-mongoose.set('strictQuery', false)
+let notes = []
 
-const noteSchema = new mongoose.Schema({
-	content: String,
-	important: Boolean,
-})
+const requestLogger = (request, response, next) => {
+	console.log('Method:', request.method)
+	console.log('Path:  ', request.path)
+	console.log('Body:  ', request.body)
+	console.log('---')
+	next()
+}
 
-noteSchema.set('toJSON', {
-	transform: (document, returnedObject) => {
-		returnedObject.id = returnedObject._id.toString()
-		delete returnedObject._id
-		delete returnedObject.__v
-	}
-})
+app.use(express.static('dist'))
+app.use(requestLogger)
 
-
-let notes = [
-	{
-		id: "1",
-		content: "HTML is easy",
-		important: true
-	},
-	{
-		id: "2",
-		content: "Browser can execute only JavaScript",
-		important: false
-	},
-	{
-		id: "3",
-		content: "GET and POST are the most important methods of HTTP protocol",
-		important: true
-	}
-]
 app.get('/', (request, response) => {
 	response.send('<h1>Hello World!</h1>')
 })
