@@ -1,6 +1,31 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 app.use(express.static('dist'))
+const Note = require('./models/note')
+
+const mongoose = require('mongoose')
+
+// DO NOT SAVE YOUR PASSWORD TO GITHUB!!
+const password = process.argv[2]
+const url = `mongodb+srv://lucianlavric2005:${password}@cluster0.uswyigg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
+
+mongoose.set('strictQuery', false)
+mongoose.connect(url)
+
+const noteSchema = new mongoose.Schema({
+	content: String,
+	important: Boolean,
+})
+
+noteSchema.set('toJSON', {
+	transform: (document, returnedObject) => {
+		returnedObject.id = returnedObject._id.toString()
+		delete returnedObject._id
+		delete returnedObject.__v
+	}
+})
+
 
 let notes = [
 	{
@@ -24,18 +49,17 @@ app.get('/', (request, response) => {
 })
 
 app.get('/api/notes', (request, response) => {
-	response.json(notes)
+	Note.find({}).then(notes => {
+		response.json(notes)
+	})
 })
 
 app.get('/api/notes/:id', (request, response) => {
-	const id = request.params.id
-	const note = notes.find(note => note.id === id)
-	if (note) {
+	Note.findById(request.params.id).then(note => {
 		response.json(note)
-	} else {
-		response.status(404).end()
-	}
+	})
 })
+
 
 app.delete('/api/notes/:id', (request, response) => {
 	const id = request.params.id
@@ -66,12 +90,12 @@ app.post('/api/notes', (request, response) => {
 		id: generateId(),
 	}
 
-	notes = notes.concat(note)
-
-	response.json(note)
+	note.save().then(savedNote => {
+		response.json(savedNote)
+	})
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`)
 })
